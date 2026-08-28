@@ -5,15 +5,129 @@ import { fmtDateTime } from '@/lib/format'
 
 export default async function CadetDashboard() {
   const { supabase, profile } = await getCurrentUserWithProfile()
-  const { data: events } = await supabase.from('events').select('*').eq('is_active', true).gte('start_at', new Date().toISOString()).order('start_at')
-  const { data: requests } = await supabase.from('excusal_requests').select('event_id,status')
-  const requested = new Map((requests || []).map(r => [r.event_id, r.status]))
-  const visible = (events || []).filter(e => e.company === 'ALL' || e.company === profile.company)
 
-  return <><Nav/><main className="shell">
-    <section className="hero"><div className="eyebrow">Cadet Portal</div><h1 className="h1">Upcoming events</h1><p className="sub">Request an excused absence from a scheduled battalion event and track the request through review.</p></section>
-    <div className="grid"><section className="card span8">
-      {visible.length === 0 ? <p className="muted">No upcoming events are currently open for excusal requests.</p> : visible.map(e => <div className="event" key={e.id}><div className="row"><div><h3>{e.name}</h3><div className="muted small">{fmtDateTime(e.start_at)}{e.location ? ` · ${e.location}` : ''}</div>{e.request_deadline && <div className="small muted">Request deadline: {fmtDateTime(e.request_deadline)}</div>}</div><div>{requested.has(e.id) ? <span className={`tag ${requested.get(e.id)}`}>{String(requested.get(e.id)).replace('_',' ')}</span> : <Link className="btn" href={`/cadet/events/${e.id}`}>Request excusal</Link>}</div></div></div>)}
-    </section><aside className="card span4 stack"><div><div className="eyebrow">Your profile</div><h2 style={{margin:'6px 0'}}>{profile.first_name} {profile.last_name}</h2></div><div className="small"><b>Company:</b> {profile.company || 'Not set'}<br/><b>MS level:</b> {profile.ms_level || 'Not set'}<br/><b>Position:</b> {profile.position || 'Not set'}</div><div className="notice small">Your name, phone, email, company, instructor, commander, and position are pulled into the memorandum from your profile.</div></aside></div>
-  </main></>
+  // Show ALL events, newest/upcoming first
+  const { data: events, error: eventsError } = await supabase
+    .from('events')
+    .select('*')
+    .order('start_at', { ascending: true })
+
+  if (eventsError) {
+    console.error('Error loading events:', eventsError)
+  }
+
+  const { data: requests } = await supabase
+    .from('excusal_requests')
+    .select('event_id,status')
+
+  const requested = new Map(
+    (requests || []).map((r) => [r.event_id, r.status])
+  )
+
+  return (
+    <>
+      <Nav />
+
+      <main className="shell">
+        <section className="hero">
+          <div className="eyebrow">Cadet Portal</div>
+          <h1 className="h1">Battalion events</h1>
+          <p className="sub">
+            View all battalion events and request an excused absence when necessary.
+          </p>
+        </section>
+
+        <div className="grid">
+          <section className="card span8">
+            {eventsError && (
+              <div className="notice">
+                Could not load events: {eventsError.message}
+              </div>
+            )}
+
+            {!events || events.length === 0 ? (
+              <p className="muted">
+                No events have been created yet.
+              </p>
+            ) : (
+              events.map((e) => {
+                const isPast = new Date(e.start_at) < new Date()
+
+                return (
+                  <div className="event" key={e.id}>
+                    <div className="row">
+                      <div>
+                        <h3>{e.name}</h3>
+
+                        <div className="muted small">
+                          {fmtDateTime(e.start_at)}
+                          {e.location ? ` · ${e.location}` : ''}
+                        </div>
+
+                        <div className="small muted">
+                          Company: {e.company === 'ALL' ? 'All Cadets' : `${e.company} Company`}
+                        </div>
+
+                        {!e.is_active && (
+                          <div className="small muted">Closed</div>
+                        )}
+
+                        {isPast && (
+                          <div className="small muted">Past event</div>
+                        )}
+
+                        {e.request_deadline && (
+                          <div className="small muted">
+                            Request deadline: {fmtDateTime(e.request_deadline)}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        {requested.has(e.id) ? (
+                          <span className={`tag ${requested.get(e.id)}`}>
+                            {String(requested.get(e.id)).replace('_', ' ')}
+                          </span>
+                        ) : e.is_active && !isPast ? (
+                          <Link
+                            className="btn"
+                            href={`/cadet/events/${e.id}`}
+                          >
+                            Request excusal
+                          </Link>
+                        ) : (
+                          <span className="tag">Unavailable</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </section>
+
+          <aside className="card span4 stack">
+            <div>
+              <div className="eyebrow">Your profile</div>
+              <h2 style={{ margin: '6px 0' }}>
+                {profile.first_name} {profile.last_name}
+              </h2>
+            </div>
+
+            <div className="small">
+              <b>Company:</b> {profile.company || 'Not set'}
+              <br />
+              <b>MS level:</b> {profile.ms_level || 'Not set'}
+              <br />
+              <b>Position:</b> {profile.position || 'Not set'}
+            </div>
+
+            <div className="notice small">
+              Your profile information is used when generating your excusal memorandum.
+            </div>
+          </aside>
+        </div>
+      </main>
+    </>
+  )
 }
