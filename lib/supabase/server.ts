@@ -12,13 +12,15 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet, _headers) {
+
+        setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Components cannot always write cookies. proxy.ts refreshes sessions.
+            // This can happen when called from a Server Component.
+            // The proxy handles session refreshing.
           }
         },
       },
