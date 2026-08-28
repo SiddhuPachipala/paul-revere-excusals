@@ -117,6 +117,28 @@ export default async function StaffDashboard() {
                         {event.is_active ? 'Active' : 'Closed'}
                       </span>
                     </td>
+                    <td>
+  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+    <Link
+      className="btn secondary"
+      href={`/staff/events/${event.id}`}
+    >
+      Edit
+    </Link>
+
+    <form action={`/staff/events/${event.id}/toggle`} method="post">
+      <button className="btn secondary" type="submit">
+        {event.is_active ? 'Close' : 'Reopen'}
+      </button>
+    </form>
+
+    <form action={`/staff/events/${event.id}/delete`} method="post">
+      <button className="btn danger" type="submit">
+        Delete
+      </button>
+    </form>
+  </div>
+</td>
                   </tr>
                 ))}
               </tbody>
@@ -141,6 +163,7 @@ export default async function StaffDashboard() {
                 <th>Event</th>
                 <th>Submitted</th>
                 <th>Status</th>
+                <th>Actions</th>
                 <th></th>
               </tr>
             </thead>
