@@ -9,49 +9,74 @@ export async function changeUserRole(formData: FormData) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (userError || !user) {
     redirect('/login')
   }
 
-  // Verify that the person making the change is actually an admin.
-  const { data: adminProfile, error: adminError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  const { data: currentProfile, error: profileError } =
+    await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-  if (adminError || adminProfile?.role !== 'admin') {
-    throw new Error('Unauthorized')
+  if (profileError) {
+    throw new Error(
+      `Could not verify admin status: ${profileError.message}`
+    )
   }
 
-  const userId = String(formData.get('user_id') || '')
-  const newRole = String(formData.get('role') || '')
+  if (currentProfile?.role !== 'admin') {
+    throw new Error(
+      'You are not authorized to manage users.'
+    )
+  }
 
-  if (!userId) {
-    throw new Error('Missing user ID')
+  const targetUserId = String(
+    formData.get('user_id') || ''
+  )
+
+  const newRole = String(
+    formData.get('role') || ''
+  )
+
+  if (!targetUserId) {
+    throw new Error('Missing target user ID.')
   }
 
   if (!['cadet', 'staff'].includes(newRole)) {
-    throw new Error('Invalid role')
+    throw new Error('Invalid role.')
   }
 
-  // Prevent an admin from accidentally modifying their own role here.
-  if (userId === user.id) {
-    throw new Error('You cannot change your own role.')
+  if (targetUserId === user.id) {
+    throw new Error(
+      'You cannot change your own role.'
+    )
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .update({
       role: newRole,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', userId)
+    .eq('id', targetUserId)
+    .select('id, role')
+    .single()
 
   if (error) {
-    throw new Error(error.message)
+    throw new Error(
+      `Could not change role: ${error.message}`
+    )
+  }
+
+  if (!data) {
+    throw new Error(
+      'No profile was updated. Check your Supabase RLS policies.'
+    )
   }
 
   revalidatePath('/staff/users')
