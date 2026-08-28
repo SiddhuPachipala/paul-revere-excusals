@@ -77,9 +77,7 @@ export default async function StaffDashboard() {
           )}
 
           {!events || events.length === 0 ? (
-            <p className="muted">
-              No events have been created.
-            </p>
+            <p className="muted">No events have been created.</p>
           ) : (
             <table className="table">
               <thead>
@@ -89,6 +87,7 @@ export default async function StaffDashboard() {
                   <th>Location</th>
                   <th>Company</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
 
@@ -117,28 +116,47 @@ export default async function StaffDashboard() {
                         {event.is_active ? 'Active' : 'Closed'}
                       </span>
                     </td>
+
                     <td>
-  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-    <Link
-      className="btn secondary"
-      href={`/staff/events/${event.id}`}
-    >
-      Edit
-    </Link>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <Link
+                          className="btn secondary"
+                          href={`/staff/events/${event.id}`}
+                        >
+                          Edit
+                        </Link>
 
-    <form action={`/staff/events/${event.id}/toggle`} method="post">
-      <button className="btn secondary" type="submit">
-        {event.is_active ? 'Close' : 'Reopen'}
-      </button>
-    </form>
+                        <form
+                          action={`/staff/events/${event.id}/toggle`}
+                          method="post"
+                        >
+                          <button
+                            className="btn secondary"
+                            type="submit"
+                          >
+                            {event.is_active ? 'Close' : 'Reopen'}
+                          </button>
+                        </form>
 
-    <form action={`/staff/events/${event.id}/delete`} method="post">
-      <button className="btn danger" type="submit">
-        Delete
-      </button>
-    </form>
-  </div>
-</td>
+                        <form
+                          action={`/staff/events/${event.id}/delete`}
+                          method="post"
+                        >
+                          <button
+                            className="btn danger"
+                            type="submit"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -156,63 +174,66 @@ export default async function StaffDashboard() {
             </div>
           )}
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Cadet</th>
-                <th>Event</th>
-                <th>Submitted</th>
-                <th>Status</th>
-                <th>Actions</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {(requests || []).map((r: any) => (
-                <tr key={r.id}>
-                  <td>
-                    <b>
-                      {r.profiles?.first_name}{' '}
-                      {r.profiles?.last_name}
-                    </b>
-
-                    <div className="small muted">
-                      {r.profiles?.company
-                        ? `${r.profiles.company} Company`
-                        : ''}
-                    </div>
-                  </td>
-
-                  <td>
-                    {r.events?.name}
-
-                    <div className="small muted">
-                      {r.events?.start_at &&
-                        fmtDateTime(r.events.start_at)}
-                    </div>
-                  </td>
-
-                  <td>{fmtDateTime(r.submitted_at)}</td>
-
-                  <td>
-                    <span className={`tag ${r.status}`}>
-                      {r.status.replace('_', ' ')}
-                    </span>
-                  </td>
-
-                  <td>
-                    <Link
-                      className="btn secondary"
-                      href={`/staff/requests/${r.id}`}
-                    >
-                      Review
-                    </Link>
-                  </td>
+          {!requests || requests.length === 0 ? (
+            <p className="muted">No excusal requests yet.</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Cadet</th>
+                  <th>Event</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {requests.map((r: any) => (
+                  <tr key={r.id}>
+                    <td>
+                      <b>
+                        {r.profiles?.first_name}{' '}
+                        {r.profiles?.last_name}
+                      </b>
+
+                      <div className="small muted">
+                        {r.profiles?.company
+                          ? `${r.profiles.company} Company`
+                          : ''}
+                      </div>
+                    </td>
+
+                    <td>
+                      {r.events?.name}
+
+                      <div className="small muted">
+                        {r.events?.start_at &&
+                          fmtDateTime(r.events.start_at)}
+                      </div>
+                    </td>
+
+                    <td>{fmtDateTime(r.submitted_at)}</td>
+
+                    <td>
+                      <span className={`tag ${r.status}`}>
+                        {r.status.replace('_', ' ')}
+                      </span>
+                    </td>
+
+                    <td>
+                      <Link
+                        className="btn secondary"
+                        href={`/staff/requests/${r.id}`}
+                      >
+                        Review
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </main>
     </>
