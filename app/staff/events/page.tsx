@@ -1,6 +1,6 @@
 import { Nav } from '@/components/Nav'
 import { requireStaff } from '@/lib/auth'
-import { createEvent } from './actions'
+import { createEvent } from './new/actions'
 
 export default async function NewEvent({ searchParams }: { searchParams: Promise<{error?:string}> }) {
   await requireStaff(); const sp = await searchParams
