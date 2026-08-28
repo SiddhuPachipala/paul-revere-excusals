@@ -4,7 +4,7 @@ import { requireStaff } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 
 export default async function StaffDashboard() {
-  const { supabase } = await requireStaff()
+  const { supabase, profile } = await requireStaff()
 
   const { data: requests, error: requestsError } = await supabase
     .from('excusal_requests')
@@ -62,13 +62,21 @@ export default async function StaffDashboard() {
 
         {/* EVENTS */}
         <div className="card tablewrap" style={{ marginBottom: 18 }}>
-          <div className="row" style={{ marginBottom: 12 }}>
-            <h2 style={{ margin: 0 }}>Events</h2>
+        <div className="row" style={{ marginBottom: 12 }}>
+  <h2 style={{ margin: 0 }}>Events</h2>
 
-            <Link className="btn" href="/staff/events/new">
-              Create event
-            </Link>
-          </div>
+  <div style={{ display: 'flex', gap: 8 }}>
+    {profile.role === 'admin' && (
+      <Link className="btn secondary" href="/staff/users">
+        Manage users
+      </Link>
+    )}
+
+    <Link className="btn" href="/staff/events/new">
+      Create event
+    </Link>
+  </div>
+</div>
 
           {eventsError && (
             <div className="notice">
