@@ -15,7 +15,8 @@ export function Nav({
           href={staff ? '/staff' : '/cadet'}
           className="brand"
         >
-          PAUL REVERE BATTALION · EXCUSALS
+          <span className="brand-seal" aria-hidden="true"><span>PR</span></span>
+          <span className="brand-copy"><strong>Paul Revere Battalion</strong><small>Excusal Ledger</small></span>
         </Link>
 
         <div className="navlinks">

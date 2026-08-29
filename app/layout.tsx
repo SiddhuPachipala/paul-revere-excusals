@@ -1,4 +1,6 @@
 import './globals.css'
+import './login.css'
+import './portal.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
