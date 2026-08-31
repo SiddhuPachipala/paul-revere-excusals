@@ -18,6 +18,7 @@
 .login-card h2{font-family:Georgia,serif;font-weight:400;font-size:36px;letter-spacing:-.03em;margin:0 0 7px}
 .login-card-head p{margin:0;color:#bac9c3;font-size:14px}
 .login-card .label{display:block;color:#cbd6d1;text-transform:uppercase;letter-spacing:.12em;font-size:10px;margin-bottom:9px}
+.optional-label{margin-left:6px;color:#d79f6b;font-size:8px}
 .login-card .field{border:0;border-bottom:1px solid rgba(255,255,255,.33);border-radius:0;background:transparent;color:#fff;padding:10px 0 12px}
 .login-card .field::placeholder{color:#80958d}.login-card .field:focus{outline:0;border-bottom-color:#e0aa76}
 .login-submit{justify-content:space-between;margin-top:8px;background:#e8e0d2;color:#173b35;border-radius:0;padding:14px 17px;transition:background .2s ease,transform .2s ease}

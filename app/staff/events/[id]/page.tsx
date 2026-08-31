@@ -93,6 +93,7 @@ export default async function EditEventPage({
               <option value="ALL">All Cadets</option>
               <option value="A">A Company</option>
               <option value="B">B Company</option>
+              <option value="C">C Company</option>
             </select>
           </label>
 
