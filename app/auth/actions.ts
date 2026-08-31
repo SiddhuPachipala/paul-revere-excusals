@@ -6,18 +6,40 @@ import { createClient } from '@/lib/supabase/server'
 
 const STAFF_SIGNUP_PASSWORD = 'LIGHTYLANTY27'
 
+function getLoginErrorMessage(error: { code?: string; message?: string } | null) {
+  const isUnverified = error?.code === 'email_not_confirmed'
+    || error?.message?.toLowerCase().includes('email not confirmed')
+
+  return isUnverified
+    ? 'Your account has not been verified. Check your email for the verification link.'
+    : 'Wrong email/password combination.'
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
-  const email = String(formData.get('email') || '')
+  const email = String(formData.get('email') || '').trim()
   const password = String(formData.get('password') || '')
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  let loginError: { code?: string; message?: string } | null = null
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    loginError = error
+  } catch (error) {
+    loginError = error instanceof Error ? error : { message: 'Authentication failed' }
+  }
+  if (loginError) redirect(`/login?error=${encodeURIComponent(getLoginErrorMessage(loginError))}`)
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?error=Unable%20to%20load%20user')
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) {
+    await supabase.auth.signOut()
+    redirect(`/login?error=${encodeURIComponent(getLoginErrorMessage(userError))}`)
+  }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profileError || !profile) {
+    await supabase.auth.signOut()
+    redirect('/login?error=Your%20account%20profile%20is%20not%20ready.%20Please%20contact%20an%20administrator.')
+  }
   redirect(profile && ['staff', 'admin'].includes(profile.role) ? '/staff' : '/cadet')
 }
 

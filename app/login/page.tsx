@@ -11,8 +11,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <section className="login" aria-label="Account access">
     <div className="login-card stack">
       <header className="login-card-head"><span className="login-index">01 / ACCESS</span><div><h2>Open the ledger</h2><p>Use your battalion account to continue.</p></div></header>
-      {sp.error && <div className="notice" style={{background:'#f9e8e7',color:'#6e2420'}}>{sp.error}</div>}
-      {sp.message && <div className="notice">{sp.message}</div>}
+      {sp.error && <div className="notice" role="alert" aria-live="polite" style={{background:'#f9e8e7',color:'#6e2420'}}>{sp.error}</div>}
+      {sp.message && <div className="notice" role="status" aria-live="polite">{sp.message}</div>}
       <form action={login} className="stack">
         <label><span className="label">Email address</span><input className="field" name="email" type="email" autoComplete="email" placeholder="you@example.com" required /></label>
         <label><span className="label">Password</span><input className="field" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required /></label>
