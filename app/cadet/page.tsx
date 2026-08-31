@@ -5,11 +5,15 @@ import { fmtDateTime } from '@/lib/format'
 
 export default async function CadetDashboard() {
   const { supabase, profile } = await getCurrentUserWithProfile()
+  const companyFilter = profile.company
+    ? `company.eq.ALL,company.eq.${profile.company}`
+    : 'company.eq.ALL'
 
   // Show ALL events, newest/upcoming first
   const { data: events, error: eventsError } = await supabase
     .from('events')
     .select('*')
+    .or(companyFilter)
     .order('start_at', { ascending: true })
 
   if (eventsError) {

@@ -72,7 +72,7 @@ export default async function StaffDashboard() {
       </Link>
     )}
 
-    <Link className="btn" href="/staff/events/new">
+    <Link className="btn" href="/staff/events">
       Create event
     </Link>
   </div>

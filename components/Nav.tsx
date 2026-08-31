@@ -23,7 +23,7 @@ export function Nav({
           {staff ? (
             <>
               <Link href="/staff">Dashboard</Link>
-              <Link href="/staff/events/new">Create Event</Link>
+              <Link href="/staff/events">Create Event</Link>
 
               {admin && (
                 <Link href="/staff/users">

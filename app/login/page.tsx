@@ -18,7 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <label><span className="label">Password</span><input className="field" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required /></label>
         <button className="btn login-submit" type="submit"><span>Enter portal</span><span aria-hidden="true">↗</span></button>
       </form>
-      <details className="signup-drawer"><summary>New cadet? <span>Create an account</span></summary>
+      <details className="signup-drawer"><summary>New here? <span>Create an account</span></summary>
           <form action={signup} className="stack" style={{marginTop:14}}>
             <div className="formgrid"><label><span className="label">First name</span><input className="field" name="first_name" autoComplete="given-name" required /></label><label><span className="label">Last name</span><input className="field" name="last_name" autoComplete="family-name" required /></label></div>
             <div className="formgrid">

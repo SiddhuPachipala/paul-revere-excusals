@@ -74,3 +74,7 @@ Before real battalion use:
 3. Confirm the exact memorandum routing/signature conventions with battalion staff.
 4. Configure a production SMTP provider for reliable auth emails.
 5. Add event editing/archiving and audit logging.
+
+## Supabase security settings
+
+After applying the database migrations, open **Authentication → Settings → Password Security** in Supabase and enable leaked-password protection. This hosted-project setting cannot be enabled by an application migration and requires the Pro plan or above.

@@ -1,12 +1,10 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireStaff } from '@/lib/auth'
 
 export async function reviewRequest(requestId: string, status: 'approved'|'denied'|'changes_requested', formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { supabase, user } = await requireStaff()
 
   const { data: request } = await supabase.from('excusal_requests').select('*,profiles!excusal_requests_cadet_id_fkey(*),events(*)').eq('id',requestId).single()
   if (!request) redirect('/staff')
