@@ -12,10 +12,19 @@ CREATE TABLE "public"."events" (
   "created_by"          uuid,
   "created_at"          timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at"          timestamp with time zone NOT NULL DEFAULT now(),
+  "source"              text                     NOT NULL DEFAULT 'manual'::text,
+  "external_calendar_id" text,
+  "external_event_id"   text,
+  "external_occurrence_id" text,
+  "external_updated_at" timestamp with time zone,
   CONSTRAINT "events_company_check" CHECK ((company = ANY (ARRAY['A'::text, 'B'::text, 'C'::text, 'ALL'::text]))),
+  CONSTRAINT "events_source_check" CHECK ((source = ANY (ARRAY['manual'::text, 'google'::text]))),
   CONSTRAINT "events_pkey" PRIMARY KEY (id),
   CONSTRAINT "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES public.profiles(id)
 );
+
+CREATE UNIQUE INDEX "events_google_occurrence_key"
+  ON "public"."events" USING btree ("external_calendar_id", "external_occurrence_id");
 
 ALTER TABLE "public"."events"
   ENABLE ROW LEVEL SECURITY;
