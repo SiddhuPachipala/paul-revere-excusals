@@ -10,12 +10,16 @@ export async function POST(
 
   const { data: event, error: fetchError } = await supabase
     .from('events')
-    .select('is_active')
+    .select('is_active,start_at')
     .eq('id', id)
     .single()
 
   if (fetchError || !event) {
     return new NextResponse('Event not found', { status: 404 })
+  }
+
+  if (!event.is_active && new Date(event.start_at).getTime() <= Date.now()) {
+    return new NextResponse('Past events cannot be reopened', { status: 400 })
   }
 
   const { error } = await supabase

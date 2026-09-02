@@ -4,7 +4,8 @@ import { getCurrentUserWithProfile } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 
 export default async function CadetDashboard() {
-  const { supabase, profile } = await getCurrentUserWithProfile()
+  const { supabase, user, profile } = await getCurrentUserWithProfile()
+  const isStaff = ['staff', 'admin'].includes(profile.role)
   const companyFilter = profile.company
     ? `company.eq.ALL,company.eq.${profile.company}`
     : 'company.eq.ALL'
@@ -23,6 +24,7 @@ export default async function CadetDashboard() {
   const { data: requests } = await supabase
     .from('excusal_requests')
     .select('event_id,status')
+    .eq('cadet_id', user.id)
 
   const requested = new Map(
     (requests || []).map((r) => [r.event_id, r.status])
@@ -30,14 +32,14 @@ export default async function CadetDashboard() {
 
   return (
     <>
-      <Nav />
+      <Nav staff={isStaff} admin={profile.role === 'admin'} />
 
       <main className="shell">
         <section className="hero">
-          <div className="eyebrow">Cadet Portal</div>
+          <div className="eyebrow">{isStaff ? 'Personal Excusals' : 'Cadet Portal'}</div>
           <h1 className="h1">Battalion events</h1>
           <p className="sub">
-            View all battalion events and request an excused absence when necessary.
+            View applicable battalion events and request an excused absence when necessary.
           </p>
         </section>
 
@@ -55,7 +57,8 @@ export default async function CadetDashboard() {
               </p>
             ) : (
               events.map((e) => {
-                const isPast = new Date(e.start_at) < new Date()
+                const isPast = new Date(e.start_at).getTime() <= Date.now()
+                const isClosed = !e.is_active || isPast
 
                 return (
                   <div className="event" key={e.id}>
@@ -72,12 +75,8 @@ export default async function CadetDashboard() {
                           Company: {e.company === 'ALL' ? 'All Cadets' : `${e.company} Company`}
                         </div>
 
-                        {!e.is_active && (
+                        {isClosed && (
                           <div className="small muted">Closed</div>
-                        )}
-
-                        {isPast && (
-                          <div className="small muted">Past event</div>
                         )}
 
                         {e.request_deadline && (
@@ -92,7 +91,7 @@ export default async function CadetDashboard() {
                           <span className={`tag ${requested.get(e.id)}`}>
                             {String(requested.get(e.id)).replace('_', ' ')}
                           </span>
-                        ) : e.is_active && !isPast ? (
+                        ) : !isClosed ? (
                           <Link
                             className="btn"
                             href={`/cadet/events/${e.id}`}

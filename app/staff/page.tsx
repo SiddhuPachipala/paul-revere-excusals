@@ -35,7 +35,7 @@ export default async function StaffDashboard() {
 
   return (
     <>
-      <Nav staff />
+      <Nav staff admin={profile.role === 'admin'} />
 
       <main className="shell">
         <section className="hero">
@@ -100,8 +100,11 @@ export default async function StaffDashboard() {
               </thead>
 
               <tbody>
-                {events.map((event) => (
-                  <tr key={event.id}>
+                {events.map((event) => {
+                  const hasPassed = new Date(event.start_at).getTime() <= Date.now()
+                  const isClosed = !event.is_active || hasPassed
+
+                  return <tr key={event.id}>
                     <td>
                       <b>{event.name}</b>
                       <div className="small muted">
@@ -121,7 +124,7 @@ export default async function StaffDashboard() {
 
                     <td>
                       <span className="tag">
-                        {event.is_active ? 'Active' : 'Closed'}
+                        {isClosed ? 'Closed' : 'Active'}
                       </span>
                     </td>
 
@@ -140,17 +143,23 @@ export default async function StaffDashboard() {
                           Edit
                         </Link>
 
-                        <form
-                          action={`/staff/events/${event.id}/toggle`}
-                          method="post"
-                        >
-                          <button
-                            className="btn secondary"
-                            type="submit"
-                          >
-                            {event.is_active ? 'Close' : 'Reopen'}
+                        {hasPassed ? (
+                          <button className="btn secondary" type="button" disabled>
+                            Closed
                           </button>
-                        </form>
+                        ) : (
+                          <form
+                            action={`/staff/events/${event.id}/toggle`}
+                            method="post"
+                          >
+                            <button
+                              className="btn secondary"
+                              type="submit"
+                            >
+                              {event.is_active ? 'Close' : 'Reopen'}
+                            </button>
+                          </form>
+                        )}
 
                         <form
                           action={`/staff/events/${event.id}/delete`}
@@ -166,7 +175,7 @@ export default async function StaffDashboard() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                })}
               </tbody>
             </table>
           )}
