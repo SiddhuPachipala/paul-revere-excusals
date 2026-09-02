@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireStaff } from '@/lib/auth'
+import { parseNewYorkLocal } from '@/lib/event-time'
 
 export async function POST(
   request: Request,
@@ -14,18 +15,24 @@ export async function POST(
   const endAt = String(formData.get('end_at') || '')
   const deadline = String(formData.get('request_deadline') || '')
   const company = String(formData.get('company') || 'ALL')
-  const startDate = new Date(startAt)
-  const endDate = endAt ? new Date(endAt) : null
-  const deadlineDate = deadline ? new Date(deadline) : null
+  const startDate = parseNewYorkLocal(startAt)
+  const endDate = endAt ? parseNewYorkLocal(endAt) : null
+  const deadlineDate = deadline ? parseNewYorkLocal(deadline) : null
 
-  if (!String(formData.get('name') || '').trim() || Number.isNaN(startDate.getTime())) {
+  if (!String(formData.get('name') || '').trim() || !startDate) {
     return new NextResponse('Enter a valid event name and start time.', { status: 400 })
   }
-  if ((endDate && Number.isNaN(endDate.getTime())) || (deadlineDate && Number.isNaN(deadlineDate.getTime()))) {
+  if ((endAt && !endDate) || (deadline && !deadlineDate)) {
     return new NextResponse('Enter valid end and deadline times.', { status: 400 })
   }
   if (!['ALL', 'A', 'B', 'C'].includes(company)) {
     return new NextResponse('Select a valid company.', { status: 400 })
+  }
+  if (endDate && endDate <= startDate) {
+    return new NextResponse('The event end must be after its start.', { status: 400 })
+  }
+  if (deadlineDate && deadlineDate > startDate) {
+    return new NextResponse('The excusal deadline cannot be after the event starts.', { status: 400 })
   }
 
   const { error } = await supabase

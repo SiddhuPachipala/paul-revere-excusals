@@ -35,7 +35,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <label><span className="label">Phone number</span><input className="field" name="phone" type="tel" autoComplete="tel" placeholder="(555) 555-5555" required /></label>
             <label><span className="label">Email</span><input className="field" name="email" type="email" autoComplete="email" required /></label>
             <label><span className="label">Password</span><input className="field" name="password" type="password" autoComplete="new-password" minLength={8} required /></label>
-            <label><span className="label">Staff access password <span className="optional-label">Optional</span></span><input className="field" name="staff_password" type="password" autoComplete="off" placeholder="Leave blank for a cadet account" /></label>
           <button className="btn secondary" type="submit">Create account</button>
         </form>
       </details>

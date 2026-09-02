@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { Nav } from '@/components/Nav'
 import { getCurrentUserWithProfile } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
+import { currentTimestamp } from '@/lib/event-time'
 
 export default async function CadetDashboard() {
   const { supabase, user, profile } = await getCurrentUserWithProfile()
   const isStaff = ['staff', 'admin'].includes(profile.role)
+  const now = currentTimestamp()
   const companyFilter = profile.company
     ? `company.eq.ALL,company.eq.${profile.company}`
     : 'company.eq.ALL'
@@ -57,8 +59,11 @@ export default async function CadetDashboard() {
               </p>
             ) : (
               events.map((e) => {
-                const isPast = new Date(e.start_at).getTime() <= Date.now()
-                const isClosed = !e.is_active || isPast
+                const isPast = new Date(e.start_at).getTime() <= now
+                const deadlinePassed = e.request_deadline
+                  ? new Date(e.request_deadline).getTime() < now
+                  : false
+                const isClosed = !e.is_active || isPast || deadlinePassed
 
                 return (
                   <div className="event" key={e.id}>

@@ -2,9 +2,12 @@ import Link from 'next/link'
 import { Nav } from '@/components/Nav'
 import { requireStaff } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
+import { currentTimestamp } from '@/lib/event-time'
+import { oneRelation } from '@/lib/relation'
 
 export default async function StaffDashboard() {
   const { supabase, profile } = await requireStaff()
+  const now = currentTimestamp()
 
   const { data: requests, error: requestsError } = await supabase
     .from('excusal_requests')
@@ -32,6 +35,11 @@ export default async function StaffDashboard() {
   const pending = (requests || []).filter(
     (r) => r.status === 'pending'
   ).length
+  const requestRows = (requests || []).map((request) => ({
+    ...request,
+    profile: oneRelation(request.profiles),
+    event: oneRelation(request.events),
+  }))
 
   return (
     <>
@@ -101,7 +109,7 @@ export default async function StaffDashboard() {
 
               <tbody>
                 {events.map((event) => {
-                  const hasPassed = new Date(event.start_at).getTime() <= Date.now()
+                  const hasPassed = new Date(event.start_at).getTime() <= now
                   const isClosed = !event.is_active || hasPassed
 
                   return <tr key={event.id}>
@@ -191,7 +199,7 @@ export default async function StaffDashboard() {
             </div>
           )}
 
-          {!requests || requests.length === 0 ? (
+          {requestRows.length === 0 ? (
             <p className="muted">No excusal requests yet.</p>
           ) : (
             <table className="table">
@@ -206,27 +214,27 @@ export default async function StaffDashboard() {
               </thead>
 
               <tbody>
-                {requests.map((r: any) => (
+                {requestRows.map((r) => (
                   <tr key={r.id}>
                     <td>
                       <b>
-                        {r.profiles?.first_name}{' '}
-                        {r.profiles?.last_name}
+                        {r.profile?.first_name}{' '}
+                        {r.profile?.last_name}
                       </b>
 
                       <div className="small muted">
-                        {r.profiles?.company
-                          ? `${r.profiles.company} Company`
+                        {r.profile?.company
+                          ? `${r.profile.company} Company`
                           : ''}
                       </div>
                     </td>
 
                     <td>
-                      {r.events?.name}
+                      {r.event?.name}
 
                       <div className="small muted">
-                        {r.events?.start_at &&
-                          fmtDateTime(r.events.start_at)}
+                        {r.event?.start_at &&
+                          fmtDateTime(r.event.start_at)}
                       </div>
                     </td>
 

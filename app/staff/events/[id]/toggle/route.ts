@@ -10,7 +10,7 @@ export async function POST(
 
   const { data: event, error: fetchError } = await supabase
     .from('events')
-    .select('is_active,start_at')
+    .select('is_active,start_at,manually_closed')
     .eq('id', id)
     .single()
 
@@ -26,6 +26,7 @@ export async function POST(
     .from('events')
     .update({
       is_active: !event.is_active,
+      manually_closed: event.is_active,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

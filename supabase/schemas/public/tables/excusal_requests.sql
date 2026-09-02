@@ -41,11 +41,21 @@ CREATE POLICY "Cadets can view own requests" ON "public"."excusal_requests"
   TO "authenticated"
   USING (((cadet_id = auth.uid()) OR private.is_staff()));
 
-CREATE POLICY "Staff can update requests" ON "public"."excusal_requests"
+CREATE POLICY "Owners can resubmit requested changes" ON "public"."excusal_requests"
+  FOR UPDATE
+  TO "authenticated"
+  USING (((cadet_id = auth.uid()) AND (status = 'changes_requested'::text)))
+  WITH CHECK (((cadet_id = auth.uid()) AND (status = 'pending'::text)));
+
+CREATE POLICY "Staff can review requests" ON "public"."excusal_requests"
   FOR UPDATE
   TO "authenticated"
   USING (private.is_staff())
   WITH CHECK (private.is_staff());
+
+CREATE TRIGGER "enforce_excusal_update"
+  BEFORE UPDATE ON "public"."excusal_requests"
+  FOR EACH ROW EXECUTE FUNCTION private.enforce_excusal_update();
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE "public"."excusal_requests" TO "authenticated";
 

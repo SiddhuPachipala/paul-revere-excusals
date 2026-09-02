@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { requireStaff } from '@/lib/auth'
+import { parseNewYorkLocal } from '@/lib/event-time'
 
 export async function createEvent(formData: FormData) {
   const { supabase, user } = await requireStaff()
@@ -11,18 +12,24 @@ export async function createEvent(formData: FormData) {
   const start = String(formData.get('start_at') || '')
   const end = String(formData.get('end_at'))
   const deadline = String(formData.get('request_deadline'))
-  const startDate = new Date(start)
-  const endDate = end ? new Date(end) : null
-  const deadlineDate = deadline ? new Date(deadline) : null
+  const startDate = parseNewYorkLocal(start)
+  const endDate = end ? parseNewYorkLocal(end) : null
+  const deadlineDate = deadline ? parseNewYorkLocal(deadline) : null
 
-  if (!name || !start || Number.isNaN(startDate.getTime())) {
+  if (!name || !startDate) {
     redirect('/staff/events?error=Enter%20a%20valid%20event%20name%20and%20start%20time.')
   }
   if (!['ALL', 'A', 'B', 'C'].includes(company)) {
     redirect('/staff/events?error=Select%20a%20valid%20company.')
   }
-  if ((endDate && Number.isNaN(endDate.getTime())) || (deadlineDate && Number.isNaN(deadlineDate.getTime()))) {
+  if ((end && !endDate) || (deadline && !deadlineDate)) {
     redirect('/staff/events?error=Enter%20valid%20end%20and%20deadline%20times.')
+  }
+  if (endDate && endDate <= startDate) {
+    redirect('/staff/events?error=The%20event%20end%20must%20be%20after%20its%20start.')
+  }
+  if (deadlineDate && deadlineDate > startDate) {
+    redirect('/staff/events?error=The%20excusal%20deadline%20cannot%20be%20after%20the%20event%20starts.')
   }
 
   const { error } = await supabase.from('events').insert({

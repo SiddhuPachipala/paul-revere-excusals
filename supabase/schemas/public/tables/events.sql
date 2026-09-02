@@ -9,6 +9,7 @@ CREATE TABLE "public"."events" (
   "request_deadline"    timestamp with time zone,
   "makeup_instructions" text,
   "is_active"           boolean                  NOT NULL DEFAULT true,
+  "manually_closed"     boolean                  NOT NULL DEFAULT false,
   "created_by"          uuid,
   "created_at"          timestamp with time zone NOT NULL DEFAULT now(),
   "updated_at"          timestamp with time zone NOT NULL DEFAULT now(),

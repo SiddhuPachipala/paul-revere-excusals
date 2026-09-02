@@ -7,7 +7,7 @@ export default async function MemoPage({ params }:{params:Promise<{id:string}>})
   const {id}=await params; const {supabase}=await requireStaff()
   const {data:r}=await supabase.from('excusal_requests').select('memo_snapshot,status').eq('id',id).single()
   if(!r||r.status!=='approved'||!r.memo_snapshot) notFound()
-  const m:any=r.memo_snapshot; const today=armyDate(new Date().toISOString())
+  const m = r.memo_snapshot; const today=armyDate(new Date().toISOString())
   return <main><div className="no-print" style={{maxWidth:850,margin:'20px auto 0',padding:'0 20px'}}><PrintButton/></div><article className="memo">
     <p className="right" style={{marginTop:45}}>ATCC-BBM-AMI&nbsp;&nbsp;&nbsp; {today}</p>
     <p><b>MEMORANDUM THRU</b> {m.company_commander || 'c/CPT Company Commander'}, c/CO, {m.company || '___'} COMPANY<br/>Paul Revere Battalion, MIT, 201 Vassar St., Cambridge, MA 02139</p>

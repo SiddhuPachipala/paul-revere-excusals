@@ -1,11 +1,8 @@
 'use server'
 
-import { createHash } from 'node:crypto'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-const STAFF_SIGNUP_PASSWORD = 'LIGHTYLANTY27'
 
 async function getSiteUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
@@ -68,7 +65,6 @@ export async function signup(formData: FormData) {
   const ms_level = String(formData.get('ms_level') || '').trim()
   const email = String(formData.get('email') || '').trim()
   const password = String(formData.get('password') || '')
-  const staffPassword = String(formData.get('staff_password') || '')
 
   const requiredFields = { first_name, last_name, phone, company, ms_level, email, password }
   if (Object.values(requiredFields).some((value) => !value)) {
@@ -78,20 +74,12 @@ export async function signup(formData: FormData) {
     redirect('/login?error=Select%20a%20valid%20company%20and%20MS%20level.')
   }
   if (password.length < 8) redirect('/login?error=Password%20must%20be%20at%20least%208%20characters.')
-  if (staffPassword && staffPassword !== STAFF_SIGNUP_PASSWORD) {
-    redirect('/login?error=The%20staff%20access%20password%20is%20incorrect.')
-  }
-
-  const staff_access_signature = staffPassword
-    ? createHash('sha256').update(`staff:${email.toLowerCase()}:${STAFF_SIGNUP_PASSWORD}`).digest('hex')
-    : null
-
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${await getSiteUrl()}/auth/confirm`,
-      data: { first_name, last_name, phone, company, ms_level, staff_access_signature },
+      data: { first_name, last_name, phone, company, ms_level },
     },
   })
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)

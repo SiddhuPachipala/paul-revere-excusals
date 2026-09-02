@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Nav } from '@/components/Nav'
 import { requireStaff } from '@/lib/auth'
+import { toNewYorkLocalInput } from '@/lib/event-time'
 
 export default async function EditEventPage({
   params,
@@ -17,16 +18,6 @@ export default async function EditEventPage({
     .single()
 
   if (!event) notFound()
-
-  const toLocalInput = (value: string | null) => {
-    if (!value) return ''
-    const d = new Date(value)
-    const pad = (n: number) => String(n).padStart(2, '0')
-
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
-      d.getDate()
-    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  }
 
   return (
     <>
@@ -65,7 +56,7 @@ export default async function EditEventPage({
             <input
               type="datetime-local"
               name="start_at"
-              defaultValue={toLocalInput(event.start_at)}
+              defaultValue={toNewYorkLocalInput(event.start_at)}
               required
             />
           </label>
@@ -75,7 +66,7 @@ export default async function EditEventPage({
             <input
               type="datetime-local"
               name="end_at"
-              defaultValue={toLocalInput(event.end_at)}
+              defaultValue={toNewYorkLocalInput(event.end_at)}
             />
           </label>
 
@@ -102,7 +93,7 @@ export default async function EditEventPage({
             <input
               type="datetime-local"
               name="request_deadline"
-              defaultValue={toLocalInput(event.request_deadline)}
+              defaultValue={toNewYorkLocalInput(event.request_deadline)}
             />
           </label>
 

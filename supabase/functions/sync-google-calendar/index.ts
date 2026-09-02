@@ -52,7 +52,6 @@ type CalendarRow = {
   location: string | null;
   company: "A" | "B" | "C" | "ALL";
   makeup_instructions: string | null;
-  is_active: true;
   source: "google";
   external_calendar_id: string;
   external_event_id: string;
@@ -109,7 +108,6 @@ function rowFor(event: ICAL.Event, start: ICAL.Time, end: ICAL.Time | null): Cal
     location: String(component.getFirstPropertyValue("location") ?? "").trim() || null,
     company: companyFor(summary, description),
     makeup_instructions: makeupGuidance(description),
-    is_active: true,
     source: "google",
     external_calendar_id: CALENDAR_ID,
     external_event_id: uid,
@@ -196,7 +194,50 @@ Deno.serve(async (request) => {
       if (error) throw error;
     }
 
-    return Response.json({ ok: true, synchronized: rows.length });
+    const currentOccurrenceIds = rows.map((row) => row.external_occurrence_id);
+    for (let offset = 0; offset < currentOccurrenceIds.length; offset += 250) {
+      const { error } = await supabase
+        .from("events")
+        .update({ is_active: true, updated_at: new Date().toISOString() })
+        .eq("source", "google")
+        .eq("manually_closed", false)
+        .gt("start_at", new Date().toISOString())
+        .in("external_occurrence_id", currentOccurrenceIds.slice(offset, offset + 250));
+      if (error) throw error;
+    }
+
+    const now = Date.now();
+    const windowStart = new Date(now - PAST_WINDOW_DAYS * 86_400_000).toISOString();
+    const windowEnd = new Date(now + FUTURE_WINDOW_DAYS * 86_400_000).toISOString();
+    const { data: storedRows, error: storedError } = await supabase
+      .from("events")
+      .select("id,external_occurrence_id")
+      .eq("source", "google")
+      .gte("start_at", windowStart)
+      .lte("start_at", windowEnd);
+    if (storedError) throw storedError;
+
+    const currentOccurrences = new Set(currentOccurrenceIds);
+    const staleIds = (storedRows ?? [])
+      .filter((row) => !row.external_occurrence_id || !currentOccurrences.has(row.external_occurrence_id))
+      .map((row) => row.id);
+    for (let offset = 0; offset < staleIds.length; offset += 250) {
+      const { error } = await supabase
+        .from("events")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .in("id", staleIds.slice(offset, offset + 250));
+      if (error) throw error;
+    }
+
+    const { error: closePastError } = await supabase
+      .from("events")
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq("source", "google")
+      .lte("start_at", new Date().toISOString())
+      .eq("is_active", true);
+    if (closePastError) throw closePastError;
+
+    return Response.json({ ok: true, synchronized: rows.length, closed: staleIds.length });
   } catch (error) {
     console.error(error);
     const message = error instanceof Error
