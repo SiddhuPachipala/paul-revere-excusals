@@ -74,7 +74,7 @@ export async function signup(formData: FormData) {
     redirect('/login?error=Select%20a%20valid%20company%20and%20MS%20level.')
   }
   if (password.length < 8) redirect('/login?error=Password%20must%20be%20at%20least%208%20characters.')
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -83,7 +83,8 @@ export async function signup(formData: FormData) {
     },
   })
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
-  redirect('/login?message=Account%20created.%20Check%20your%20email%20for%20the%20verification%20link.')
+  if (data.session) redirect('/cadet')
+  redirect('/login?message=Account%20created.%20You%20can%20sign%20in%20now.')
 }
 
 export async function resendVerification(formData: FormData) {
