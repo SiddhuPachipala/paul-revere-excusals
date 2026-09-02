@@ -37,7 +37,14 @@ Then paste your real values:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=https://YOUR_DEPLOYED_DOMAIN
 ```
+
+For email verification, add both the production callback
+`https://YOUR_DEPLOYED_DOMAIN/auth/confirm` and the local callback
+`http://127.0.0.1:3000/auth/confirm` to **Authentication → URL Configuration →
+Redirect URLs** in the Supabase dashboard. Set **Site URL** to the production
+domain as well.
 
 ## 3. Install and run
 

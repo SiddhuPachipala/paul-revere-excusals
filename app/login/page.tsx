@@ -1,4 +1,4 @@
-import { login, signup } from '@/app/auth/actions'
+import { login, resendVerification, signup } from '@/app/auth/actions'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string, message?: string }> }) {
   const sp = await searchParams
@@ -18,6 +18,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <label><span className="label">Password</span><input className="field" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required /></label>
         <button className="btn login-submit" type="submit"><span>Enter portal</span><span aria-hidden="true">↗</span></button>
       </form>
+      <details className="signup-drawer">
+        <summary>Verification link not working? <span>Resend it</span></summary>
+        <form action={resendVerification} className="stack" style={{marginTop:14}}>
+          <label><span className="label">Email address</span><input className="field" name="email" type="email" autoComplete="email" required /></label>
+          <button className="btn secondary" type="submit">Resend verification email</button>
+        </form>
+      </details>
       <details className="signup-drawer"><summary>New here? <span>Create an account</span></summary>
           <form action={signup} className="stack" style={{marginTop:14}}>
             <div className="formgrid"><label><span className="label">First name</span><input className="field" name="first_name" autoComplete="given-name" required /></label><label><span className="label">Last name</span><input className="field" name="last_name" autoComplete="family-name" required /></label></div>
