@@ -1,32 +1,9 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-async function getSiteUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
-  if (configuredUrl) return configuredUrl
-
-  const requestHeaders = await headers()
-  const origin = requestHeaders.get('origin')
-  if (origin) return origin
-
-  const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
-  const protocol = requestHeaders.get('x-forwarded-proto') || 'http'
-  if (host) return `${protocol}://${host}`
-
-  return 'http://127.0.0.1:3000'
-}
-
-function getLoginErrorMessage(error: { code?: string; message?: string } | null) {
-  const isUnverified = error?.code === 'email_not_confirmed'
-    || error?.message?.toLowerCase().includes('email not confirmed')
-
-  return isUnverified
-    ? 'Your account has not been verified. Check your email for the verification link.'
-    : 'Wrong email/password combination.'
-}
+const LOGIN_ERROR = 'Wrong email/password combination.'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -40,12 +17,12 @@ export async function login(formData: FormData) {
   } catch (error) {
     loginError = error instanceof Error ? error : { message: 'Authentication failed' }
   }
-  if (loginError) redirect(`/login?error=${encodeURIComponent(getLoginErrorMessage(loginError))}`)
+  if (loginError) redirect(`/login?error=${encodeURIComponent(LOGIN_ERROR)}`)
 
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) {
     await supabase.auth.signOut()
-    redirect(`/login?error=${encodeURIComponent(getLoginErrorMessage(userError))}`)
+    redirect(`/login?error=${encodeURIComponent(LOGIN_ERROR)}`)
   }
 
   const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).single()
@@ -77,30 +54,11 @@ export async function signup(formData: FormData) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: `${await getSiteUrl()}/auth/confirm`,
-      data: { first_name, last_name, phone, company, ms_level },
-    },
+    options: { data: { first_name, last_name, phone, company, ms_level } },
   })
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
   if (data.session) redirect('/cadet')
   redirect('/login?message=Account%20created.%20You%20can%20sign%20in%20now.')
-}
-
-export async function resendVerification(formData: FormData) {
-  const supabase = await createClient()
-  const email = String(formData.get('email') || '').trim()
-
-  if (!email) redirect('/login?error=Enter%20your%20email%20address%20to%20resend%20verification.')
-
-  const { error } = await supabase.auth.resend({
-    type: 'signup',
-    email,
-    options: { emailRedirectTo: `${await getSiteUrl()}/auth/confirm` },
-  })
-
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
-  redirect('/login?message=Verification%20email%20resent.%20Check%20your%20inbox%20and%20spam%20folder.')
 }
 
 export async function logout() {

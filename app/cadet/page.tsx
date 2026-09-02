@@ -4,7 +4,13 @@ import { getCurrentUserWithProfile } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 import { currentTimestamp } from '@/lib/event-time'
 
-export default async function CadetDashboard() {
+export default async function CadetDashboard({ searchParams }: {
+  searchParams: Promise<{ sort?: string }>
+}) {
+  const sp = await searchParams
+  const sort = ['date_asc', 'date_desc', 'name_asc'].includes(sp.sort || '')
+    ? sp.sort as 'date_asc' | 'date_desc' | 'name_asc'
+    : 'date_asc'
   const { supabase, user, profile } = await getCurrentUserWithProfile()
   const isStaff = ['staff', 'admin'].includes(profile.role)
   const now = currentTimestamp()
@@ -13,11 +19,16 @@ export default async function CadetDashboard() {
     : 'company.eq.ALL'
 
   // Show ALL events, newest/upcoming first
-  const { data: events, error: eventsError } = await supabase
+  let eventsQuery = supabase
     .from('events')
     .select('*')
     .or(companyFilter)
-    .order('start_at', { ascending: true })
+
+  eventsQuery = sort === 'name_asc'
+    ? eventsQuery.order('name', { ascending: true }).order('start_at', { ascending: true })
+    : eventsQuery.order('start_at', { ascending: sort === 'date_asc' })
+
+  const { data: events, error: eventsError } = await eventsQuery
 
   if (eventsError) {
     console.error('Error loading events:', eventsError)
@@ -47,6 +58,10 @@ export default async function CadetDashboard() {
 
         <div className="grid">
           <section className="card span8">
+            <form method="get" className="row" style={{ marginBottom: 10 }}>
+              <label style={{ minWidth: 210 }}><span className="label">Sort events</span><select className="field" name="sort" defaultValue={sort}><option value="date_asc">Date: earliest first</option><option value="date_desc">Date: latest first</option><option value="name_asc">Name: A–Z</option></select></label>
+              <button className="btn secondary" type="submit">Apply sort</button>
+            </form>
             {eventsError && (
               <div className="notice">
                 Could not load events: {eventsError.message}

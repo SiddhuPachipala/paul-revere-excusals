@@ -5,7 +5,13 @@ import { fmtDateTime } from '@/lib/format'
 import { currentTimestamp } from '@/lib/event-time'
 import { oneRelation } from '@/lib/relation'
 
-export default async function StaffDashboard() {
+export default async function StaffDashboard({ searchParams }: {
+  searchParams: Promise<{ sort?: string }>
+}) {
+  const sp = await searchParams
+  const sort = ['date_asc', 'date_desc', 'name_asc'].includes(sp.sort || '')
+    ? sp.sort as 'date_asc' | 'date_desc' | 'name_asc'
+    : 'date_asc'
   const { supabase, profile } = await requireStaff()
   const now = currentTimestamp()
 
@@ -27,10 +33,15 @@ export default async function StaffDashboard() {
     `)
     .order('submitted_at', { ascending: false })
 
-  const { data: events, error: eventsError } = await supabase
+  let eventsQuery = supabase
     .from('events')
     .select('*')
-    .order('start_at', { ascending: true })
+
+  eventsQuery = sort === 'name_asc'
+    ? eventsQuery.order('name', { ascending: true }).order('start_at', { ascending: true })
+    : eventsQuery.order('start_at', { ascending: sort === 'date_asc' })
+
+  const { data: events, error: eventsError } = await eventsQuery
 
   const pending = (requests || []).filter(
     (r) => r.status === 'pending'
@@ -73,7 +84,11 @@ export default async function StaffDashboard() {
         <div className="row" style={{ marginBottom: 12 }}>
   <h2 style={{ margin: 0 }}>Events</h2>
 
-  <div style={{ display: 'flex', gap: 8 }}>
+  <div style={{ display: 'flex', gap: 8, alignItems: 'end', flexWrap: 'wrap' }}>
+    <form method="get" style={{ display: 'flex', gap: 8, alignItems: 'end' }}>
+      <label><span className="label">Sort events</span><select className="field" name="sort" defaultValue={sort}><option value="date_asc">Date: earliest first</option><option value="date_desc">Date: latest first</option><option value="name_asc">Name: A–Z</option></select></label>
+      <button className="btn secondary" type="submit">Apply</button>
+    </form>
     {profile.role === 'admin' && (
       <Link className="btn secondary" href="/staff/users">
         Manage users
