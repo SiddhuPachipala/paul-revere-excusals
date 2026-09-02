@@ -3,14 +3,18 @@ import { Nav } from '@/components/Nav'
 import { getCurrentUserWithProfile } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 import { currentTimestamp } from '@/lib/event-time'
+import { EventFilters } from '@/components/EventFilters'
 
 export default async function CadetDashboard({ searchParams }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; q?: string; status?: string; type?: string }>
 }) {
   const sp = await searchParams
   const sort = ['date_asc', 'date_desc', 'name_asc'].includes(sp.sort || '')
     ? sp.sort as 'date_asc' | 'date_desc' | 'name_asc'
     : 'date_asc'
+  const q = (sp.q || '').trim()
+  const status = ['all', 'active', 'closed'].includes(sp.status || '') ? sp.status! : 'all'
+  const eventType = ['all', 'Lab', 'PT', 'FTX', 'Class', 'Other'].includes(sp.type || '') ? sp.type! : 'all'
   const { supabase, user, profile } = await getCurrentUserWithProfile()
   const isStaff = ['staff', 'admin'].includes(profile.role)
   const now = currentTimestamp()
@@ -29,6 +33,16 @@ export default async function CadetDashboard({ searchParams }: {
     : eventsQuery.order('start_at', { ascending: sort === 'date_asc' })
 
   const { data: events, error: eventsError } = await eventsQuery
+  const visibleEvents = (events || []).filter((event) => {
+    const searchable = `${event.name} ${event.location || ''}`.toLowerCase()
+    const deadlinePassed = event.request_deadline
+      ? new Date(event.request_deadline).getTime() < now
+      : false
+    const closed = !event.is_active || new Date(event.start_at).getTime() <= now || deadlinePassed
+    return (!q || searchable.includes(q.toLowerCase()))
+      && (eventType === 'all' || event.event_type === eventType)
+      && (status === 'all' || (status === 'closed' ? closed : !closed))
+  })
 
   if (eventsError) {
     console.error('Error loading events:', eventsError)
@@ -58,22 +72,19 @@ export default async function CadetDashboard({ searchParams }: {
 
         <div className="grid">
           <section className="card span8">
-            <form method="get" className="row" style={{ marginBottom: 10 }}>
-              <label style={{ minWidth: 210 }}><span className="label">Sort events</span><select className="field" name="sort" defaultValue={sort}><option value="date_asc">Date: earliest first</option><option value="date_desc">Date: latest first</option><option value="name_asc">Name: A–Z</option></select></label>
-              <button className="btn secondary" type="submit">Apply sort</button>
-            </form>
+            <EventFilters q={q} sort={sort} status={status} eventType={eventType} />
             {eventsError && (
               <div className="notice">
                 Could not load events: {eventsError.message}
               </div>
             )}
 
-            {!events || events.length === 0 ? (
+            {visibleEvents.length === 0 ? (
               <p className="muted">
-                No events have been created yet.
+                No events match your search and filters.
               </p>
             ) : (
-              events.map((e) => {
+              visibleEvents.map((e) => {
                 const isPast = new Date(e.start_at).getTime() <= now
                 const deadlinePassed = e.request_deadline
                   ? new Date(e.request_deadline).getTime() < now

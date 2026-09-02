@@ -4,14 +4,19 @@ import { requireStaff } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 import { currentTimestamp } from '@/lib/event-time'
 import { oneRelation } from '@/lib/relation'
+import { EventFilters } from '@/components/EventFilters'
 
 export default async function StaffDashboard({ searchParams }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; q?: string; status?: string; type?: string; company?: string }>
 }) {
   const sp = await searchParams
   const sort = ['date_asc', 'date_desc', 'name_asc'].includes(sp.sort || '')
     ? sp.sort as 'date_asc' | 'date_desc' | 'name_asc'
     : 'date_asc'
+  const q = (sp.q || '').trim()
+  const status = ['all', 'active', 'closed'].includes(sp.status || '') ? sp.status! : 'all'
+  const eventType = ['all', 'Lab', 'PT', 'FTX', 'Class', 'Other'].includes(sp.type || '') ? sp.type! : 'all'
+  const company = ['all', 'ALL', 'A', 'B', 'C'].includes(sp.company || '') ? sp.company! : 'all'
   const { supabase, profile } = await requireStaff()
   const now = currentTimestamp()
 
@@ -42,6 +47,14 @@ export default async function StaffDashboard({ searchParams }: {
     : eventsQuery.order('start_at', { ascending: sort === 'date_asc' })
 
   const { data: events, error: eventsError } = await eventsQuery
+  const visibleEvents = (events || []).filter((event) => {
+    const searchable = `${event.name} ${event.location || ''}`.toLowerCase()
+    const closed = !event.is_active || new Date(event.start_at).getTime() <= now
+    return (!q || searchable.includes(q.toLowerCase()))
+      && (eventType === 'all' || event.event_type === eventType)
+      && (company === 'all' || event.company === company)
+      && (status === 'all' || (status === 'closed' ? closed : !closed))
+  })
 
   const pending = (requests || []).filter(
     (r) => r.status === 'pending'
@@ -85,10 +98,6 @@ export default async function StaffDashboard({ searchParams }: {
   <h2 style={{ margin: 0 }}>Events</h2>
 
   <div style={{ display: 'flex', gap: 8, alignItems: 'end', flexWrap: 'wrap' }}>
-    <form method="get" style={{ display: 'flex', gap: 8, alignItems: 'end' }}>
-      <label><span className="label">Sort events</span><select className="field" name="sort" defaultValue={sort}><option value="date_asc">Date: earliest first</option><option value="date_desc">Date: latest first</option><option value="name_asc">Name: A–Z</option></select></label>
-      <button className="btn secondary" type="submit">Apply</button>
-    </form>
     {profile.role === 'admin' && (
       <Link className="btn secondary" href="/staff/users">
         Manage users
@@ -101,14 +110,16 @@ export default async function StaffDashboard({ searchParams }: {
   </div>
 </div>
 
+          <EventFilters q={q} sort={sort} status={status} eventType={eventType} company={company} showCompany />
+
           {eventsError && (
             <div className="notice">
               Error loading events: {eventsError.message}
             </div>
           )}
 
-          {!events || events.length === 0 ? (
-            <p className="muted">No events have been created.</p>
+          {visibleEvents.length === 0 ? (
+            <p className="muted">No events match your search and filters.</p>
           ) : (
             <table className="table">
               <thead>
@@ -123,7 +134,7 @@ export default async function StaffDashboard({ searchParams }: {
               </thead>
 
               <tbody>
-                {events.map((event) => {
+                {visibleEvents.map((event) => {
                   const hasPassed = new Date(event.start_at).getTime() <= now
                   const isClosed = !event.is_active || hasPassed
 
