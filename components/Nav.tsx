@@ -42,6 +42,8 @@ export function Nav({
             </>
           )}
 
+          <Link href="/cadet/profile">Profile</Link>
+
           <form action={logout}>
             <button
               className="btn secondary"

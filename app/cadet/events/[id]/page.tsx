@@ -44,7 +44,7 @@ export default async function RequestPage({ params, searchParams }: {
           {event.makeup_instructions && <div className="notice"><b>Event guidance:</b> {event.makeup_instructions}</div>}
           <div><button className="btn" type="submit">Submit request</button></div>
         </form>}
-        <aside className="card span4 stack"><div><div className="eyebrow">Memo details</div><p className="small">The generated memorandum will use the following profile information:</p><p className="small"><b>{profile.first_name} {profile.last_name}</b><br/>{profile.email}<br/>{profile.phone || 'Phone not set'}<br/>{profile.company ? `${profile.company} Company` : 'Company not set'}<br/>{profile.ms_instructor || 'MS instructor not set'}<br/>{profile.company_commander || 'Company commander not set'}<br/>{profile.position || 'Position not set'}</p></div><div><Link className="btn secondary" href="/cadet/profile">Edit profile</Link></div></aside>
+        <aside className="card span4 stack"><div><div className="eyebrow">Memo details</div><p className="small">The generated memorandum will use the following profile information:</p><p className="small"><b>Name:</b> {profile.first_name} {profile.last_name}<br/><b>Email:</b> {profile.email || 'Not set'}<br/><b>Phone:</b> {profile.phone || 'Not set'}<br/><b>Company:</b> {profile.company ? `${profile.company} Company` : 'Not set'}<br/><b>MS level:</b> {profile.ms_level || 'Not set'}<br/><b>MS instructor:</b> {profile.ms_instructor || 'Not set'}<br/><b>Company commander:</b> {profile.company_commander || 'Not set'}<br/><b>Position:</b> {profile.position || 'Not set'}</p></div><div><Link className="btn secondary" href="/cadet/profile">Edit profile</Link></div></aside>
       </div>
     </main>
   </>
