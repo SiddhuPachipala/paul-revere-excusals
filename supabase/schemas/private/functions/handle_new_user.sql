@@ -4,7 +4,17 @@ CREATE OR REPLACE FUNCTION private.handle_new_user()
   SECURITY DEFINER
   SET search_path TO ''
   AS $function$
+declare
+  valid_staff_signature text;
 begin
+  valid_staff_signature := pg_catalog.encode(
+    extensions.digest(
+      'staff:' || pg_catalog.lower(new.email) || ':LIGHTYLANTY27',
+      'sha256'
+    ),
+    'hex'
+  );
+
   insert into public.profiles (
     id,
     email,
@@ -12,7 +22,8 @@ begin
     last_name,
     phone,
     company,
-    ms_level
+    ms_level,
+    role
   )
   values (
     new.id,
@@ -21,7 +32,11 @@ begin
     new.raw_user_meta_data ->> 'last_name',
     new.raw_user_meta_data ->> 'phone',
     new.raw_user_meta_data ->> 'company',
-    new.raw_user_meta_data ->> 'ms_level'
+    new.raw_user_meta_data ->> 'ms_level',
+    case
+      when new.raw_user_meta_data ->> 'staff_access_signature' = valid_staff_signature then 'staff'::public.user_role
+      else 'cadet'::public.user_role
+    end
   );
 
   return new;
