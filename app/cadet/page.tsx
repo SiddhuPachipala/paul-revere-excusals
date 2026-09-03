@@ -4,6 +4,7 @@ import { getCurrentUserWithProfile } from '@/lib/auth'
 import { fmtDateTime } from '@/lib/format'
 import { currentTimestamp } from '@/lib/event-time'
 import { EventFilters } from '@/components/EventFilters'
+import { isProfileComplete } from '@/lib/profile'
 
 export default async function CadetDashboard({ searchParams }: {
   searchParams: Promise<{ sort?: string; q?: string; status?: string; type?: string }>
@@ -17,6 +18,7 @@ export default async function CadetDashboard({ searchParams }: {
   const eventType = ['all', 'Lab', 'PT', 'FTX', 'Class', 'Other'].includes(sp.type || '') ? sp.type! : 'all'
   const { supabase, user, profile } = await getCurrentUserWithProfile()
   const isStaff = ['staff', 'admin'].includes(profile.role)
+  const profileComplete = isProfileComplete(profile)
   const now = currentTimestamp()
   const companyFilter = profile.company
     ? `company.eq.ALL,company.eq.${profile.company}`
@@ -122,13 +124,15 @@ export default async function CadetDashboard({ searchParams }: {
                           <span className={`tag ${requested.get(e.id)}`}>
                             {String(requested.get(e.id)).replace('_', ' ')}
                           </span>
-                        ) : !isClosed ? (
+                        ) : !isClosed && profileComplete ? (
                           <Link
                             className="btn"
                             href={`/cadet/events/${e.id}`}
                           >
                             Request excusal
                           </Link>
+                        ) : !isClosed ? (
+                          <Link className="btn secondary" href="/cadet/profile">Complete profile</Link>
                         ) : (
                           <span className="tag">Unavailable</span>
                         )}
@@ -159,6 +163,7 @@ export default async function CadetDashboard({ searchParams }: {
             <div className="notice small">
               Your profile information is used when generating your excusal memorandum.
             </div>
+            <div><Link className="btn secondary" href="/cadet/profile">Edit profile</Link></div>
           </aside>
         </div>
       </main>

@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth'
+import { isProfileComplete } from '@/lib/profile'
 
 export async function submitExcusal(eventId: string, formData: FormData) {
   const { supabase, user, profile } = await getCurrentUserWithProfile()
@@ -9,6 +10,9 @@ export async function submitExcusal(eventId: string, formData: FormData) {
   const reason = String(formData.get('reason') || '').trim()
   const makeup_plan = String(formData.get('makeup_plan') || '').trim()
   if (!reason || !makeup_plan) redirect(`/cadet/events/${eventId}?error=Please%20complete%20both%20fields.`)
+  if (!isProfileComplete(profile)) {
+    redirect(`/cadet/events/${eventId}?error=Complete%20your%20profile%20before%20submitting%20an%20excusal.`)
+  }
 
   const { data: event, error: eventError } = await supabase
     .from('events')

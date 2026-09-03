@@ -32,6 +32,16 @@ CREATE POLICY "Users can read own profile" ON "public"."profiles"
   TO "authenticated"
   USING (((id = auth.uid()) OR private.is_staff()));
 
+CREATE POLICY "Users can update own profile information" ON "public"."profiles"
+  FOR UPDATE
+  TO "authenticated"
+  USING ((id = auth.uid()))
+  WITH CHECK ((id = auth.uid()));
+
+CREATE TRIGGER "protect_profile_identity"
+  BEFORE UPDATE ON "public"."profiles"
+  FOR EACH ROW EXECUTE FUNCTION private.protect_profile_identity();
+
 GRANT SELECT, UPDATE ON TABLE "public"."profiles" TO "authenticated";
 
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."profiles" TO "postgres", "service_role";

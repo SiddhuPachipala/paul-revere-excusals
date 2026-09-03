@@ -2,14 +2,18 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth'
+import { isProfileComplete } from '@/lib/profile'
 
 export async function resubmitExcusal(requestId: string, formData: FormData) {
-  const { supabase, user } = await getCurrentUserWithProfile()
+  const { supabase, user, profile } = await getCurrentUserWithProfile()
   const reason = String(formData.get('reason') || '').trim()
   const makeupPlan = String(formData.get('makeup_plan') || '').trim()
 
   if (!reason || !makeupPlan) {
     redirect(`/cadet/requests/${requestId}?error=Complete%20both%20fields%20before%20resubmitting.`)
+  }
+  if (!isProfileComplete(profile)) {
+    redirect(`/cadet/requests/${requestId}?error=Complete%20your%20profile%20before%20resubmitting.`)
   }
 
   const { data, error } = await supabase

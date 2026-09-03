@@ -34,7 +34,16 @@ CREATE POLICY "Cadets can submit applicable requests" ON "public"."excusal_reque
      JOIN public.profiles p ON ((p.id = ( SELECT auth.uid() AS uid))))
   WHERE
     ((e.id = excusal_requests.event_id) AND e.is_active AND (e.start_at > now()) AND ((e.request_deadline IS NULL) OR (e.request_deadline >= now())) AND ((e.company = 'ALL'::text)
-    OR (e.company = p.company)))))));
+    OR (e.company = p.company)))
+    AND (NULLIF(btrim(p.first_name), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.last_name), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.email), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.phone), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.company), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.ms_level), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.ms_instructor), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.company_commander), ''::text) IS NOT NULL)
+    AND (NULLIF(btrim(p.position), ''::text) IS NOT NULL))))));
 
 CREATE POLICY "Cadets can view own requests" ON "public"."excusal_requests"
   FOR SELECT
@@ -56,6 +65,10 @@ CREATE POLICY "Staff can review requests" ON "public"."excusal_requests"
 CREATE TRIGGER "enforce_excusal_update"
   BEFORE UPDATE ON "public"."excusal_requests"
   FOR EACH ROW EXECUTE FUNCTION private.enforce_excusal_update();
+
+CREATE TRIGGER "require_complete_profile_for_excusal"
+  BEFORE INSERT OR UPDATE ON "public"."excusal_requests"
+  FOR EACH ROW EXECUTE FUNCTION private.require_complete_profile_for_excusal();
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE "public"."excusal_requests" TO "authenticated";
 
