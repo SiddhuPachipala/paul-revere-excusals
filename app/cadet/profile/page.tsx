@@ -1,6 +1,7 @@
 import { Nav } from '@/components/Nav'
 import { getCurrentUserWithProfile } from '@/lib/auth'
 import { updateProfile } from './actions'
+import { positionOptions } from '@/lib/profile'
 
 export default async function ProfilePage({ searchParams }: {
   searchParams: Promise<{ error?: string; message?: string }>
@@ -24,7 +25,7 @@ export default async function ProfilePage({ searchParams }: {
         <label><span className="label">MS level</span><select className="field" name="ms_level" defaultValue={profile.ms_level || ''} required><option value="" disabled>Select MS level</option><option>MS I</option><option>MS II</option><option>MS III</option><option>MS IV</option></select></label>
         <label><span className="label">MS instructor</span><input className="field" name="ms_instructor" defaultValue={profile.ms_instructor || ''} required /></label>
         <label><span className="label">Company commander</span><input className="field" name="company_commander" defaultValue={profile.company_commander || ''} required /></label>
-        <label className="full"><span className="label">Position</span><input className="field" name="position" defaultValue={profile.position || ''} required /></label>
+        <label className="full"><span className="label">Position</span><select className="field" name="position" defaultValue={profile.position || ''} required><option value="" disabled>Select position</option>{profile.position && !(positionOptions as readonly string[]).includes(profile.position) && <option value={profile.position}>{profile.position} (current)</option>}{positionOptions.map((position) => <option key={position} value={position}>{position}</option>)}</select></label>
         <div className="full"><button className="btn" type="submit">Save profile</button></div>
       </form>
     </main>

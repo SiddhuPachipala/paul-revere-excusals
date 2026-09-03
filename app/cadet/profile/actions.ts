@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth'
-import { requiredProfileFields } from '@/lib/profile'
+import { positionOptions, requiredProfileFields } from '@/lib/profile'
 
 export async function updateProfile(formData: FormData) {
   const { supabase, user, profile } = await getCurrentUserWithProfile()
@@ -18,6 +18,9 @@ export async function updateProfile(formData: FormData) {
   }
   if (!['MS I', 'MS II', 'MS III', 'MS IV'].includes(values.ms_level)) {
     redirect('/cadet/profile?error=Select%20a%20valid%20MS%20level.')
+  }
+  if (!(positionOptions as readonly string[]).includes(values.position)) {
+    redirect('/cadet/profile?error=Select%20a%20valid%20position.')
   }
 
   if (values.email.toLowerCase() !== String(profile.email).toLowerCase()) {
