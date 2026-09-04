@@ -1,8 +1,8 @@
-CREATE OR REPLACE FUNCTION private.enforce_excusal_update()
-  RETURNS trigger
-  LANGUAGE plpgsql
-  SET search_path TO ''
-  AS $function$
+create or replace function private.enforce_excusal_update()
+returns trigger
+language plpgsql
+set search_path to ''
+as $$
 begin
   if old.cadet_id = (select auth.uid()) and old.status = 'changes_requested' then
     if new.status <> 'pending'
@@ -44,6 +44,6 @@ begin
 
   raise exception 'You are not authorized to update this excusal request';
 end;
-$function$;
+$$;
 
-REVOKE ALL ON FUNCTION private.enforce_excusal_update() FROM PUBLIC, anon, authenticated;
+revoke execute on function private.enforce_excusal_update() from public, anon, authenticated;

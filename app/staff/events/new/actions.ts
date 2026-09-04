@@ -9,6 +9,7 @@ export async function createEvent(formData: FormData) {
 
   const name = String(formData.get('name') || '').trim()
   const company = String(formData.get('company') || 'ALL')
+  const eventType = String(formData.get('event_type') || '')
   const start = String(formData.get('start_at') || '')
   const end = String(formData.get('end_at'))
   const deadline = String(formData.get('request_deadline'))
@@ -22,6 +23,9 @@ export async function createEvent(formData: FormData) {
   if (!['ALL', 'A', 'B', 'C'].includes(company)) {
     redirect('/staff/events?error=Select%20a%20valid%20company.')
   }
+  if (!['Lab', 'PT', 'FTX', 'Class', 'Other'].includes(eventType)) {
+    redirect('/staff/events?error=Select%20a%20valid%20event%20type.')
+  }
   if ((end && !endDate) || (deadline && !deadlineDate)) {
     redirect('/staff/events?error=Enter%20valid%20end%20and%20deadline%20times.')
   }
@@ -33,7 +37,7 @@ export async function createEvent(formData: FormData) {
   }
 
   const { error } = await supabase.from('events').insert({
-    name, event_type: String(formData.get('event_type')||''),
+    name, event_type: eventType,
     start_at: startDate.toISOString(),
     end_at: endDate ? endDate.toISOString() : null,
     location: String(formData.get('location')||''), company,

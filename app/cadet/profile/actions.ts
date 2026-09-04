@@ -28,11 +28,14 @@ export async function updateProfile(formData: FormData) {
     if (authError) redirect(`/cadet/profile?error=${encodeURIComponent(authError.message)}`)
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .update(values)
     .eq('id', user.id)
+    .select('id')
+    .maybeSingle()
 
   if (error) redirect(`/cadet/profile?error=${encodeURIComponent(error.message)}`)
+  if (!data) redirect('/cadet/profile?error=Profile%20could%20not%20be%20updated.')
   redirect('/cadet/profile?message=Profile%20saved.')
 }

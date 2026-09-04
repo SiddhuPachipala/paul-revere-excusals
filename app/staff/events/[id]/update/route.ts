@@ -15,6 +15,7 @@ export async function POST(
   const endAt = String(formData.get('end_at') || '')
   const deadline = String(formData.get('request_deadline') || '')
   const company = String(formData.get('company') || 'ALL')
+  const eventType = String(formData.get('event_type') || '')
   const startDate = parseNewYorkLocal(startAt)
   const endDate = endAt ? parseNewYorkLocal(endAt) : null
   const deadlineDate = deadline ? parseNewYorkLocal(deadline) : null
@@ -28,6 +29,9 @@ export async function POST(
   if (!['ALL', 'A', 'B', 'C'].includes(company)) {
     return new NextResponse('Select a valid company.', { status: 400 })
   }
+  if (!['Lab', 'PT', 'FTX', 'Class', 'Other'].includes(eventType)) {
+    return new NextResponse('Select a valid event type.', { status: 400 })
+  }
   if (endDate && endDate <= startDate) {
     return new NextResponse('The event end must be after its start.', { status: 400 })
   }
@@ -35,11 +39,11 @@ export async function POST(
     return new NextResponse('The excusal deadline cannot be after the event starts.', { status: 400 })
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('events')
     .update({
       name: String(formData.get('name') || '').trim(),
-      event_type: String(formData.get('event_type') || '') || null,
+      event_type: eventType,
       start_at: startDate.toISOString(),
       end_at: endDate ? endDate.toISOString() : null,
       location: String(formData.get('location') || '') || null,
@@ -50,10 +54,13 @@ export async function POST(
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .select('id')
+    .maybeSingle()
 
   if (error) {
     return new NextResponse(error.message, { status: 400 })
   }
+  if (!data) return new NextResponse('Event not found', { status: 404 })
 
   return NextResponse.redirect(
     new URL('/staff', request.url),

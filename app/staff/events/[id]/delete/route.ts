@@ -27,14 +27,17 @@ export async function POST(
   }
 
   // Safe to delete because no excusal requests exist.
-  const { error: deleteError } = await supabase
+  const { data: deleted, error: deleteError } = await supabase
     .from('events')
     .delete()
     .eq('id', id)
+    .select('id')
+    .maybeSingle()
 
   if (deleteError) {
     return new NextResponse(deleteError.message, { status: 400 })
   }
+  if (!deleted) return new NextResponse('Event not found', { status: 404 })
 
   return NextResponse.redirect(
     new URL('/staff', request.url),

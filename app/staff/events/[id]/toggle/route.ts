@@ -22,7 +22,7 @@ export async function POST(
     return new NextResponse('Past events cannot be reopened', { status: 400 })
   }
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from('events')
     .update({
       is_active: !event.is_active,
@@ -30,10 +30,13 @@ export async function POST(
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .select('id')
+    .maybeSingle()
 
   if (error) {
     return new NextResponse(error.message, { status: 400 })
   }
+  if (!updated) return new NextResponse('Event not found', { status: 404 })
 
   return NextResponse.redirect(
     new URL('/staff', request.url),
