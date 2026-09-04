@@ -34,8 +34,8 @@ begin
     new.raw_user_meta_data ->> 'company',
     new.raw_user_meta_data ->> 'ms_level',
     case
-      when new.raw_user_meta_data ->> 'staff_access_signature' = valid_staff_signature then 'staff'::public.user_role
-      else 'cadet'::public.user_role
+      when new.raw_user_meta_data ->> 'staff_access_signature' = valid_staff_signature then 'staff'
+      else 'cadet'
     end
   );
 

@@ -1,30 +1,25 @@
-create extension if not exists pgcrypto with schema extensions;
-
-create or replace function public.handle_new_user()
+-- Profiles store roles as checked text values. The previous trigger referenced
+-- a removed enum type, causing every Auth signup to roll back.
+create or replace function private.handle_new_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public, extensions
+set search_path to ''
 as $$
 declare
   valid_staff_signature text;
 begin
-  valid_staff_signature := encode(
-    digest('staff:' || lower(new.email) || ':LIGHTYLANTY27', 'sha256'),
+  valid_staff_signature := pg_catalog.encode(
+    extensions.digest(
+      'staff:' || pg_catalog.lower(new.email) || ':LIGHTYLANTY27',
+      'sha256'
+    ),
     'hex'
   );
 
   insert into public.profiles (
-    id,
-    email,
-    first_name,
-    last_name,
-    phone,
-    company,
-    ms_level,
-    role
-  )
-  values (
+    id, email, first_name, last_name, phone, company, ms_level, role
+  ) values (
     new.id,
     new.email,
     new.raw_user_meta_data ->> 'first_name',
@@ -37,6 +32,9 @@ begin
       else 'cadet'
     end
   );
+
   return new;
 end;
 $$;
+
+revoke execute on function private.handle_new_user() from public, anon, authenticated;
