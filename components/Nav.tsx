@@ -25,7 +25,7 @@ export function Nav({
               <Link href="/staff">Dashboard</Link>
               <Link href="/cadet">Submit Excusal</Link>
               <Link href="/cadet/requests">My Excusals</Link>
-              <Link href="/cadet/semester-pt">Semester PT</Link>
+              <Link href="/cadet/semester-pt">PT Excusals</Link>
               <Link href="/staff/semester-pt">PT Reviews</Link>
               <Link href="/staff/events">Create Event</Link>
 
@@ -41,7 +41,7 @@ export function Nav({
               <Link href="/cadet/requests">
                 My Requests
               </Link>
-              <Link href="/cadet/semester-pt">Semester PT</Link>
+              <Link href="/cadet/semester-pt">PT Excusals</Link>
             </>
           )}
 

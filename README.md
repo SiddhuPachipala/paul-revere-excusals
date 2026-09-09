@@ -37,7 +37,10 @@ Then paste your real values:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=https://YOUR_PRODUCTION_DOMAIN
 ```
+
+Add the same production URL (and `/auth/callback` if your Supabase project requires an exact path) to **Authentication → URL Configuration → Redirect URLs**. Password-reset emails return users through this callback.
 
 ## 3. Install and run
 

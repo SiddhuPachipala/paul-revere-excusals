@@ -25,5 +25,6 @@
 .login-submit:hover{background:#fff;transform:translateY(-2px)}
 .signup-drawer{border-top:1px solid rgba(255,255,255,.22);padding-top:20px}
 .signup-drawer summary{cursor:pointer;color:#bac9c3;font-size:13px}.signup-drawer summary span{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.forgot-password-link,.login-back{align-self:flex-start;color:#dce7e2;font-size:13px;text-decoration:underline;text-underline-offset:4px}.forgot-password-link{margin-top:-6px}.login-back{margin-top:4px}.login-error{background:#f9e8e7;color:#6e2420}
 .login-card .btn.secondary{border-color:rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:0}
 @media(max-width:850px){.loginwrap{grid-template-columns:1fr}.login-intro{min-height:auto;padding:48px 28px 64px}.login-mark{margin-bottom:55px}.login-intro h1{font-size:clamp(54px,15vw,82px)}.login-folio{padding-top:50px}.login{padding:58px 28px;min-height:620px}}

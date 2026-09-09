@@ -1,4 +1,5 @@
 import { login, signup } from '@/app/auth/actions'
+import Link from 'next/link'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string, message?: string }> }) {
   const sp = await searchParams
@@ -16,6 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <form action={login} className="stack">
         <label><span className="label">Email address</span><input className="field" name="email" type="email" autoComplete="email" placeholder="you@example.com" required /></label>
         <label><span className="label">Password</span><input className="field" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required /></label>
+        <Link className="forgot-password-link" href="/forgot-password">Forgot password?</Link>
         <button className="btn login-submit" type="submit"><span>Enter portal</span><span aria-hidden="true">↗</span></button>
       </form>
       <details className="signup-drawer"><summary>New here? <span>Create an account</span></summary>

@@ -1,11 +1,22 @@
 'use server'
 
 import { createHash } from 'node:crypto'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 const LOGIN_ERROR = 'Wrong email/password combination.'
 const STAFF_SIGNUP_PASSWORD = 'LIGHTYLANTY27'
+
+async function getSiteUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  if (configuredUrl) return configuredUrl
+
+  const requestHeaders = await headers()
+  const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host')
+  const protocol = requestHeaders.get('x-forwarded-proto') || (host?.startsWith('localhost') ? 'http' : 'https')
+  return host ? `${protocol}://${host}` : 'http://localhost:3000'
+}
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -70,6 +81,42 @@ export async function signup(formData: FormData) {
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`)
   if (data.session) redirect(staffSignup ? '/staff' : '/cadet')
   redirect('/login?message=Account%20created.%20You%20can%20sign%20in%20now.')
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = String(formData.get('email') || '').trim()
+  if (!email) redirect('/forgot-password?error=Enter%20your%20email%20address.')
+
+  const supabase = await createClient()
+  const siteUrl = await getSiteUrl()
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
+  redirect('/forgot-password?message=If%20an%20account%20exists%20for%20that%20email%2C%20a%20reset%20link%20is%20on%20the%20way.')
+}
+
+export async function updatePassword(formData: FormData) {
+  const password = String(formData.get('password') || '')
+  const confirmPassword = String(formData.get('confirm_password') || '')
+
+  if (password.length < 8) {
+    redirect('/reset-password?error=Password%20must%20be%20at%20least%208%20characters.')
+  }
+  if (password !== confirmPassword) {
+    redirect('/reset-password?error=Passwords%20do%20not%20match.')
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/forgot-password?error=That%20reset%20link%20is%20invalid%20or%20has%20expired.')
+
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) redirect(`/reset-password?error=${encodeURIComponent(error.message)}`)
+
+  await supabase.auth.signOut()
+  redirect('/login?message=Password%20updated.%20Sign%20in%20with%20your%20new%20password.')
 }
 
 export async function logout() {

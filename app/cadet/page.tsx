@@ -36,6 +36,7 @@ export default async function CadetDashboard({ searchParams }: {
 
   const { data: events, error: eventsError } = await eventsQuery
   const visibleEvents = (events || []).filter((event) => {
+    if (event.event_type === 'PT') return false
     const searchable = `${event.name} ${event.location || ''}`.toLowerCase()
     const deadlinePassed = event.request_deadline
       ? new Date(event.request_deadline).getTime() < now
@@ -68,7 +69,7 @@ export default async function CadetDashboard({ searchParams }: {
           <div className="eyebrow">{isStaff ? 'Personal Excusals' : 'Cadet Portal'}</div>
           <h1 className="h1">Battalion events</h1>
           <p className="sub">
-            View applicable battalion events and request an excused absence when necessary.
+            View applicable battalion events and request an excused absence when necessary. PT requests are handled separately by date.
           </p>
         </section>
 
@@ -145,6 +146,13 @@ export default async function CadetDashboard({ searchParams }: {
           </section>
 
           <aside className="card span4 stack">
+            <div>
+              <div className="eyebrow">Missing PT?</div>
+              <h2 style={{ margin: '6px 0' }}>Choose the date</h2>
+              <p className="small muted">PT sessions stay out of the event list. Submit the date you will miss directly.</p>
+              <Link className="btn" href="/cadet/semester-pt">Request PT excusal</Link>
+            </div>
+            <hr style={{width:'100%',border:0,borderTop:'1px solid var(--line)'}} />
             <div>
               <div className="eyebrow">Your profile</div>
               <h2 style={{ margin: '6px 0' }}>

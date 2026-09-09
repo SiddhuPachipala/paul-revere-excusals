@@ -5,6 +5,13 @@ export function fmtDate(value: string) {
   }).format(new Date(value))
 }
 
+export function fmtDateOnly(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    timeZone: 'America/New_York'
+  }).format(new Date(`${value}T12:00:00-04:00`))
+}
+
 export function fmtDateTime(value: string) {
   return new Intl.DateTimeFormat('en-US', {
     month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
