@@ -15,12 +15,12 @@ export default async function ResetPasswordPage({
   return <main className="loginwrap">
     <section className="login-intro" aria-labelledby="new-password-title">
       <div className="login-mark" aria-hidden="true"><span>PR</span></div>
-      <div className="login-kicker">Paul Revere Battalion · Account Recovery</div>
-      <h1 id="new-password-title">Choose a new<br />password.</h1>
+      <div className="login-kicker">Paul Revere Battalion</div>
+      <h1 id="new-password-title">Account recovery</h1>
     </section>
     <section className="login" aria-label="Choose a new password">
       <div className="login-card stack">
-        <header className="login-card-head"><span className="login-index">03 / SECURE</span><div><h2>New password</h2><p>Use at least eight characters.</p></div></header>
+        <header className="login-card-head"><div><h2>Choose a new password</h2><p>Use at least eight characters.</p></div></header>
         {sp.error && <div className="notice login-error" role="alert" aria-live="polite">{sp.error}</div>}
         <form action={updatePassword} className="stack">
           <label><span className="label">New password</span><input className="field" name="password" type="password" autoComplete="new-password" minLength={8} required /></label>

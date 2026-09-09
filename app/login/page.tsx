@@ -6,12 +6,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return <main className="loginwrap">
     <section className="login-intro" aria-labelledby="login-title">
       <div className="login-mark" aria-hidden="true"><span>PR</span></div>
-      <div className="login-kicker">Paul Revere Battalion · Excusal Ledger</div>
-      <h1 id="login-title">Every absence<br />leaves a mark.</h1>
+      <div className="login-kicker">Paul Revere Battalion</div>
+      <h1 id="login-title">Excusal Portal</h1>
     </section>
     <section className="login" aria-label="Account access">
     <div className="login-card stack">
-      <header className="login-card-head"><span className="login-index">01 / ACCESS</span><div><h2>Open the ledger</h2><p>Use your battalion account to continue.</p></div></header>
+      <header className="login-card-head"><div><h2>Sign in</h2><p>Use your battalion account to continue.</p></div></header>
       {sp.error && <div className="notice" role="alert" aria-live="polite" style={{background:'#f9e8e7',color:'#6e2420'}}>{sp.error}</div>}
       {sp.message && <div className="notice" role="status" aria-live="polite">{sp.message}</div>}
       <form action={login} className="stack">

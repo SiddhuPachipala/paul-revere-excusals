@@ -33,7 +33,7 @@ export default async function SemesterPtPage({ searchParams }: {
     .order('submitted_at', { ascending: false })
 
   return <><Nav staff={isStaff} admin={profile.role === 'admin'} /><main className="shell">
-    <section className="hero"><div className="eyebrow">PT Excusals</div><h1 className="h1">Physical training excusals</h1><p className="sub">Choose a PT date without waiting for staff to create each session as an event.</p></section>
+    <section className="hero"><div className="eyebrow">PT Excusals</div><h1 className="h1">Physical training excusals</h1></section>
     {sp.error && <div className="notice" style={{background:'#f9e8e7',marginBottom:16}}>{sp.error}</div>}
     {sp.message && <div className="notice" style={{marginBottom:16}}>{sp.message}</div>}
     <div className="grid">
