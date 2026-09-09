@@ -7,9 +7,10 @@ import { oneRelation } from '@/lib/relation'
 import { EventFilters } from '@/components/EventFilters'
 
 export default async function StaffDashboard({ searchParams }: {
-  searchParams: Promise<{ sort?: string; q?: string; status?: string; type?: string; company?: string }>
+  searchParams: Promise<{ view?: string; sort?: string; q?: string; status?: string; type?: string; company?: string }>
 }) {
   const sp = await searchParams
+  const view = sp.view === 'events' ? 'events' : 'pending'
   const sort = ['date_asc', 'date_desc', 'name_asc'].includes(sp.sort || '')
     ? sp.sort as 'date_asc' | 'date_desc' | 'name_asc'
     : 'date_asc'
@@ -64,6 +65,7 @@ export default async function StaffDashboard({ searchParams }: {
     profile: oneRelation(request.profiles),
     event: oneRelation(request.events),
   }))
+  const pendingRequestRows = requestRows.filter((request) => request.status === 'pending')
 
   return (
     <>
@@ -78,21 +80,22 @@ export default async function StaffDashboard({ searchParams }: {
           </p>
         </section>
 
-        <div className="grid" style={{ marginBottom: 18 }}>
-          <div className="card span6">
+        <div className="grid dashboard-tabs" style={{ marginBottom: 18 }}>
+          <Link href="/staff?view=pending" className={`card span6 dashboard-tab ${view === 'pending' ? 'active' : ''}`} aria-current={view === 'pending' ? 'page' : undefined}>
             <div className="eyebrow">Pending</div>
             <div className="stat">{pending}</div>
             <div className="muted">requests awaiting review</div>
-          </div>
+          </Link>
 
-          <div className="card span6">
+          <Link href="/staff?view=events" className={`card span6 dashboard-tab ${view === 'events' ? 'active' : ''}`} aria-current={view === 'events' ? 'page' : undefined}>
             <div className="eyebrow">Events</div>
             <div className="stat">{events?.length || 0}</div>
             <div className="muted">total events</div>
-          </div>
+          </Link>
         </div>
 
         {/* EVENTS */}
+        {view === 'events' && (
         <div className="card tablewrap" style={{ marginBottom: 18 }}>
         <div className="row" style={{ marginBottom: 12 }}>
   <h2 style={{ margin: 0 }}>Events</h2>
@@ -110,7 +113,7 @@ export default async function StaffDashboard({ searchParams }: {
   </div>
 </div>
 
-          <EventFilters q={q} sort={sort} status={status} eventType={eventType} company={company} showCompany />
+          <EventFilters q={q} sort={sort} status={status} eventType={eventType} company={company} showCompany view="events" />
 
           {eventsError && (
             <div className="notice">
@@ -214,10 +217,12 @@ export default async function StaffDashboard({ searchParams }: {
             </table>
           )}
         </div>
+        )}
 
         {/* REQUESTS */}
+        {view === 'pending' && (
         <div className="card tablewrap">
-          <h2 style={{ marginTop: 0 }}>Recent requests</h2>
+          <h2 style={{ marginTop: 0 }}>Pending requests</h2>
 
           {requestsError && (
             <div className="notice">
@@ -225,8 +230,8 @@ export default async function StaffDashboard({ searchParams }: {
             </div>
           )}
 
-          {requestRows.length === 0 ? (
-            <p className="muted">No excusal requests yet.</p>
+          {pendingRequestRows.length === 0 ? (
+            <p className="muted">No requests are awaiting review.</p>
           ) : (
             <table className="table">
               <thead>
@@ -240,7 +245,7 @@ export default async function StaffDashboard({ searchParams }: {
               </thead>
 
               <tbody>
-                {requestRows.map((r) => (
+                {pendingRequestRows.map((r) => (
                   <tr key={r.id}>
                     <td>
                       <b>
@@ -286,6 +291,7 @@ export default async function StaffDashboard({ searchParams }: {
             </table>
           )}
         </div>
+        )}
       </main>
     </>
   )
